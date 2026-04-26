@@ -1,53 +1,33 @@
-# Ayusense
+# 🌿 Ayusense — AI-Powered Ayurvedic Wellness Platform
 
-Ayusense is an AI-assisted Ayurvedic wellness platform for plant detection, herbal remedy guidance, and symptom-based support.
+Ayusense is an AI-based web application that combines **Ayurveda and modern AI** to provide plant identification and personalized herbal remedies.
 
-## Overview
+## 🚀 Features
 
-This repository contains the Ayusense web application and Supabase serverless functions used for:
+* 🌱 Identify medicinal plants from images
+* 💊 Get Ayurvedic remedies based on symptoms
+* 🧠 Explainable AI with simple health insights
+* 🧘 Lifestyle and wellness suggestions
 
-- Medicinal plant identification from images
-- Ayurvedic remedy recommendations based on symptoms
-- Personalized wellness insights with a plant-based focus
+## 🏗️ Tech Stack
 
-## Getting started
+* Frontend: React, TypeScript, Tailwind CSS
+* Backend: Supabase (PostgreSQL, Edge Functions)
+* AI: OpenRouter (Gemini + Mistral models)
 
-### Install dependencies
+## ⚙️ Setup
 
-```sh
+```bash
+git clone https://github.com/your-username/ayusense-ai-wellness-website.git
+cd ayusense-ai-wellness-website
 npm install
-```
-
-### Run the development server
-
-```sh
 npm run dev
 ```
 
-### Build for production
+## ⚠️ Disclaimer
 
-```sh
-npm run build
-```
+This platform is for educational purposes only and does not replace professional medical advice.
 
-### Run tests
+---
 
-```sh
-npm test
-```
-
-## Project structure
-
-- `src/` — React application source files
-- `src/components/` — UI views and reusable components
-- `src/lib/` — API helpers and utility logic
-- `supabase/functions/` — serverless functions for plant identification and remedy generation
-
-## Notes
-
-- Update environment variables for your AI gateway service in Supabase function settings.
-- Remove or replace placeholder images with your own branded imagery before launch.
-
-## License
-
-This project is delivered as-is for Ayusense.
+✨ Built to make Ayurvedic knowledge accessible using AI.
