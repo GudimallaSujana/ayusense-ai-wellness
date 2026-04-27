@@ -13,9 +13,10 @@ serve(async (req) => {
     const { imageBase64 } = await req.json();
     if (!imageBase64) throw new Error("No image provided");
 
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const AI_GATEWAY_KEY = Deno.env.get("AI_GATEWAY_KEY");
     const AI_GATEWAY_URL = Deno.env.get("AI_GATEWAY_URL") || "https://openrouter.ai/api/v1/chat/completions";
-    if (!AI_GATEWAY_KEY) throw new Error("AI_GATEWAY_KEY not configured");
+    if (!GEMINI_API_KEY && !AI_GATEWAY_KEY) throw new Error("No AI key configured");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
