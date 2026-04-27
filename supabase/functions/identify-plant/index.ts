@@ -13,9 +13,10 @@ serve(async (req) => {
     const { imageBase64 } = await req.json();
     if (!imageBase64) throw new Error("No image provided");
 
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const AI_GATEWAY_KEY = Deno.env.get("AI_GATEWAY_KEY");
     const AI_GATEWAY_URL = Deno.env.get("AI_GATEWAY_URL") || "https://openrouter.ai/api/v1/chat/completions";
-    if (!AI_GATEWAY_KEY) throw new Error("AI_GATEWAY_KEY not configured");
+    if (!GEMINI_API_KEY && !AI_GATEWAY_KEY) throw new Error("No AI key configured");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -76,67 +77,109 @@ You MUST respond with valid compact JSON only. Do not use markdown fences. Use t
 
 If you cannot identify the plant, set confidence below 30 and explain what you see.`;
 
-    // Step 1: AI identifies the plant
-    const freeVisionModels = [
-      "google/gemma-4-31b-it:free",
-      "google/gemma-4-26b-a4b-it:free",
-      "nvidia/nemotron-nano-12b-v2-vl:free",
-      "google/gemma-3-27b-it:free",
-      "google/gemma-3-12b-it:free",
-      "google/gemma-3-4b-it:free",
-    ];
+    // Strip data URL prefix for Gemini
+    const base64Data = imageBase64.replace(/^data:image\/[a-z]+;base64,/, "");
+    const mimeMatch = imageBase64.match(/^data:(image\/[a-z]+);base64,/);
+    const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
 
-    let response: Response | null = null;
-    let lastError = "";
-    let data: any = null;
     let content = "";
+    let lastError = "";
 
-    for (const model of freeVisionModels) {
-      response = await fetch(AI_GATEWAY_URL, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${AI_GATEWAY_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://lovable.dev",
-          "X-Title": "AyuSense",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: systemPrompt },
+    // Step 1a: Try Gemini directly (best free vision model for plants)
+    if (GEMINI_API_KEY) {
+      const geminiModels = [
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b",
+      ];
+      for (const model of geminiModels) {
+        try {
+          const gRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
             {
-              role: "user",
-              content: [
-                { type: "text", text: "Identify this medicinal plant and match it to the database. Use the EXACT herb name from the provided list." },
-                { type: "image_url", image_url: { url: imageBase64 } },
-              ],
-            },
-          ],
-          response_format: { type: "json_object" },
-          max_tokens: 4096,
-        }),
-      });
-
-      if (response.ok) {
-        data = await response.clone().json();
-        content = data.choices?.[0]?.message?.content || "";
-        if (content.trim()) break;
-        lastError = `Empty AI response from ${model}`;
-        response = null;
-        continue;
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [
+                  {
+                    role: "user",
+                    parts: [
+                      { text: systemPrompt + "\n\nIdentify this medicinal plant. Match it to the EXACT name from the database list. Return ONLY valid JSON." },
+                      { inline_data: { mime_type: mimeType, data: base64Data } },
+                    ],
+                  },
+                ],
+                generationConfig: {
+                  temperature: 0.2,
+                  maxOutputTokens: 4096,
+                  responseMimeType: "application/json",
+                },
+              }),
+            }
+          );
+          if (gRes.ok) {
+            const gData = await gRes.json();
+            content = gData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            if (content.trim()) break;
+            lastError = `Empty Gemini response from ${model}`;
+          } else {
+            lastError = `Gemini ${model}: ${gRes.status} ${await gRes.text()}`;
+            if (![429, 500, 502, 503, 504].includes(gRes.status)) break;
+          }
+        } catch (err) {
+          lastError = `Gemini ${model} threw: ${err instanceof Error ? err.message : String(err)}`;
+        }
       }
-
-      lastError = await response.text();
-      if (![402, 404, 429, 500, 502, 503, 504].includes(response.status)) break;
     }
 
-    if (!response) throw new Error("AI gateway did not respond");
+    // Step 1b: Fallback to OpenRouter free vision models
+    if (!content.trim() && AI_GATEWAY_KEY) {
+      const freeVisionModels = [
+        "meta-llama/llama-3.2-90b-vision-instruct:free",
+        "meta-llama/llama-3.2-11b-vision-instruct:free",
+        "qwen/qwen2.5-vl-72b-instruct:free",
+        "google/gemma-3-27b-it:free",
+      ];
+      for (const model of freeVisionModels) {
+        const response = await fetch(AI_GATEWAY_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${AI_GATEWAY_KEY}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://lovable.dev",
+            "X-Title": "AyuSense",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: "Identify this medicinal plant. Use the EXACT herb name from the provided list." },
+                  { type: "image_url", image_url: { url: imageBase64 } },
+                ],
+              },
+            ],
+            response_format: { type: "json_object" },
+            max_tokens: 4096,
+            temperature: 0.2,
+          }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          content = data.choices?.[0]?.message?.content || "";
+          if (content.trim()) break;
+          lastError = `Empty OpenRouter response from ${model}`;
+        } else {
+          lastError = `OpenRouter ${model}: ${response.status}`;
+          if (![402, 404, 429, 500, 502, 503, 504].includes(response.status)) break;
+        }
+      }
+    }
 
-    if (!response.ok) {
-      const status = response.status;
-      if (status === 429) return new Response(JSON.stringify({ error: "Free AI models are busy. Please try again in a moment." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (status === 402) return new Response(JSON.stringify({ error: "The free AI provider rejected this request. Please try again later." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      throw new Error(`AI gateway error: ${status}${lastError ? ` - ${lastError}` : ""}`);
+    if (!content.trim()) {
+      throw new Error(`AI did not return a response. ${lastError}`);
     }
 
     let parsed: any;
@@ -150,21 +193,27 @@ If you cannot identify the plant, set confidence below 30 and explain what you s
     // Step 2: Enrich with database data
     const identifiedName = parsed.plantName || "";
     
-    // Fuzzy match: find the closest herb from database
+    // Strict word-boundary match so "Amla" cannot accidentally hit unrelated herbs.
     const nameLower = identifiedName.toLowerCase().trim();
+    const nameTokens = nameLower.split(/[\s\/,\(\)\-]+/).filter((t: string) => t.length > 2);
+
+    // 1. Exact full-name match
     let matchedHerb = (herbs || []).find((h: any) => h.name.toLowerCase() === nameLower);
-    
-    if (!matchedHerb) {
-      // Try partial matching
-      matchedHerb = (herbs || []).find((h: any) => 
-        nameLower.includes(h.name.toLowerCase()) || h.name.toLowerCase().includes(nameLower)
-      );
+
+    // 2. Match by first significant token (e.g. "Ashwagandha (Withania somnifera)" -> "Ashwagandha")
+    if (!matchedHerb && nameTokens.length > 0) {
+      matchedHerb = (herbs || []).find((h: any) => {
+        const herbTokens = h.name.toLowerCase().split(/[\s\/,\(\)\-]+/).filter((t: string) => t.length > 2);
+        return herbTokens[0] === nameTokens[0];
+      });
     }
-    
-    if (!matchedHerb) {
-      // Try matching common name variations (e.g., "Tulsi / Holy Basil" -> "Tulsi")
-      const firstWord = nameLower.split(/[\s\/,\(]+/)[0].trim();
-      matchedHerb = (herbs || []).find((h: any) => h.name.toLowerCase() === firstWord);
+
+    // 3. Token overlap (any significant token shared)
+    if (!matchedHerb && nameTokens.length > 0) {
+      matchedHerb = (herbs || []).find((h: any) => {
+        const herbTokens = h.name.toLowerCase().split(/[\s\/,\(\)\-]+/).filter((t: string) => t.length > 2);
+        return herbTokens.some((ht: string) => nameTokens.includes(ht));
+      });
     }
 
     // Enrich AI response with real database data
