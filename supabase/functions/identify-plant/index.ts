@@ -193,21 +193,27 @@ If you cannot identify the plant, set confidence below 30 and explain what you s
     // Step 2: Enrich with database data
     const identifiedName = parsed.plantName || "";
     
-    // Fuzzy match: find the closest herb from database
+    // Strict word-boundary match so "Amla" cannot accidentally hit unrelated herbs.
     const nameLower = identifiedName.toLowerCase().trim();
+    const nameTokens = nameLower.split(/[\s\/,\(\)\-]+/).filter((t: string) => t.length > 2);
+
+    // 1. Exact full-name match
     let matchedHerb = (herbs || []).find((h: any) => h.name.toLowerCase() === nameLower);
-    
-    if (!matchedHerb) {
-      // Try partial matching
-      matchedHerb = (herbs || []).find((h: any) => 
-        nameLower.includes(h.name.toLowerCase()) || h.name.toLowerCase().includes(nameLower)
-      );
+
+    // 2. Match by first significant token (e.g. "Ashwagandha (Withania somnifera)" -> "Ashwagandha")
+    if (!matchedHerb && nameTokens.length > 0) {
+      matchedHerb = (herbs || []).find((h: any) => {
+        const herbTokens = h.name.toLowerCase().split(/[\s\/,\(\)\-]+/).filter((t: string) => t.length > 2);
+        return herbTokens[0] === nameTokens[0];
+      });
     }
-    
-    if (!matchedHerb) {
-      // Try matching common name variations (e.g., "Tulsi / Holy Basil" -> "Tulsi")
-      const firstWord = nameLower.split(/[\s\/,\(]+/)[0].trim();
-      matchedHerb = (herbs || []).find((h: any) => h.name.toLowerCase() === firstWord);
+
+    // 3. Token overlap (any significant token shared)
+    if (!matchedHerb && nameTokens.length > 0) {
+      matchedHerb = (herbs || []).find((h: any) => {
+        const herbTokens = h.name.toLowerCase().split(/[\s\/,\(\)\-]+/).filter((t: string) => t.length > 2);
+        return herbTokens.some((ht: string) => nameTokens.includes(ht));
+      });
     }
 
     // Enrich AI response with real database data
