@@ -68,7 +68,7 @@ const PlantIdentifier = ({ onBack }: { onBack: () => void }) => {
                 Change Image
               </Button>
               <Button onClick={handleIdentify} disabled={loading} className="flex-1 golden-glow bg-primary hover:bg-secondary text-primary-foreground">
-                {loading ? <><Loader2 className="animate-spin mr-2" size={16} /> Analyzing with AI...</> : <><Leaf className="mr-2" size={16} /> Identify Plant and it's Benifits</>}
+                {loading ? <><Loader2 className="animate-spin mr-2" size={16} /> Analyzing with AI...</> : <><Leaf className="mr-2" size={16} /> Identify Plant</>}
               </Button>
             </div>
           </div>
