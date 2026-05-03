@@ -1,33 +1,53 @@
-# 🌿 Ayusense — AI-Powered Ayurvedic Wellness Platform
+# Ayusense
 
-Ayusense is an AI-based web application that combines **Ayurveda and modern AI** to provide plant identification and personalized herbal remedies.
+Ayusense is an AI-assisted Ayurvedic wellness platform for plant detection, herbal remedy guidance, and symptom-based support.
 
-## 🚀 Features
+## Overview
 
-* 🌱 Identify medicinal plants from images
-* 💊 Get Ayurvedic remedies based on symptoms
-* 🧠 Explainable AI with simple health insights
-* 🧘 Lifestyle and wellness suggestions
+This repository contains the Ayusense web application and Supabase serverless functions used for:
 
-## 🏗️ Tech Stack
+- Medicinal plant identification from images
+- Ayurvedic remedy recommendations based on symptoms
+- Personalized wellness insights with a plant-based focus
 
-* Frontend: React, TypeScript, Tailwind CSS
-* Backend: Supabase (PostgreSQL, Edge Functions)
-* AI: OpenRouter (Gemini + Mistral models)
+## Getting started
 
-## ⚙️ Setup
+### Install dependencies
 
-```bash
-git clone https://github.com/your-username/ayusense-ai-wellness-website.git
-cd ayusense-ai-wellness-website
+```sh
 npm install
+```
+
+### Run the development server
+
+```sh
 npm run dev
 ```
 
-## ⚠️ Disclaimer
+### Build for production
 
-This platform is for educational purposes only and does not replace professional medical advice.
+```sh
+npm run build
+```
 
----
+### Run tests
 
-✨ Built to make Ayurvedic knowledge accessible using AI.
+```sh
+npm test
+```
+
+## Project structure
+
+- `src/` — React application source files
+- `src/components/` — UI views and reusable components
+- `src/lib/` — API helpers and utility logic
+- `supabase/functions/` — serverless functions for plant identification and remedy generation
+
+## Notes
+
+- Update environment variables for your AI gateway service in Supabase function settings.
+- Remove or replace placeholder images with your own branded imagery before launch.
+
+## License
+
+This project is delivered as-is for Ayusense.
