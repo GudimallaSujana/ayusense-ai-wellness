@@ -9,7 +9,7 @@ interface Leaf {
   emoji: string;
 }
 
-const leafEmojis = ["🍃", "🌿", "🍂", "☘️"];
+const leafEmojis = ["🍃", "🌿", "🍂", "☘️", "🌸"];
 
 const FloatingLeaves = () => {
   const [leaves, setLeaves] = useState<Leaf[]>([]);

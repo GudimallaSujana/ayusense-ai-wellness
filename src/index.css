@@ -6,13 +6,13 @@
 
 @layer base {
   :root {
-    --background: 60 33% 97%;
+    --background: 83 28% 96%;
     --foreground: 120 50% 12%;
 
-    --card: 60 56% 91%;
+    --card: 82 31% 93%;
     --card-foreground: 120 50% 12%;
 
-    --popover: 60 33% 97%;
+    --popover: 83 28% 96%;
     --popover-foreground: 120 50% 12%;
 
     --primary: 125 52% 24%;
@@ -21,7 +21,7 @@
     --secondary: 125 45% 33%;
     --secondary-foreground: 60 33% 97%;
 
-    --muted: 60 56% 91%;
+    --muted: 83 31% 93%;
     --muted-foreground: 120 15% 40%;
 
     --accent: 43 65% 52%;
@@ -30,8 +30,8 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 60 20% 82%;
-    --input: 60 20% 82%;
+    --border: 80 34% 88%;
+    --input: 80 34% 88%;
     --ring: 125 52% 24%;
 
     --radius: 1.25rem;
@@ -93,6 +93,10 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
+    background-image: radial-gradient(circle at 12% 8%, hsla(123,48%,88%,0.3), transparent 18%), radial-gradient(circle at 86% 18%, hsla(45,80%,92%,0.24), transparent 20%), linear-gradient(180deg, #fdfbf5 0%, #eef1e5 40%, #f8f8f1 100%);
+    background-attachment: fixed;
+    background-size: cover;
+    min-height: 100vh;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Cormorant Garamond', serif;

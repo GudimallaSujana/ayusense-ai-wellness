@@ -66,7 +66,7 @@ const RemedyFinder = ({ onBack }: { onBack: () => void }) => {
           disabled={loading || !symptoms.trim()}
           className="w-full golden-glow bg-primary hover:bg-secondary text-primary-foreground"
         >
-          {loading ? <><Loader2 className="animate-spin mr-2" size={16} /> Analyzing with AI (446 conditions database)...</> : <><Search className="mr-2" size={16} /> Find Remedies</>}
+          {loading ? <><Loader2 className="animate-spin mr-2" size={16} /> Analyzing Suitable Remedies ....</> : <><Search className="mr-2" size={16} /> Find Remedies</>}
         </Button>
       </form>
 
