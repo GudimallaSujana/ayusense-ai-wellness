@@ -80,7 +80,7 @@ If you cannot identify the plant, set confidence below 30 and explain what you s
     const response = await fetch(AI_GATEWAY_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${AI_GATEWAY_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
