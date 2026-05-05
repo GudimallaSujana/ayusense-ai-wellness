@@ -13,10 +13,9 @@ serve(async (req) => {
     const { symptoms, location } = await req.json();
     if (!symptoms) throw new Error("No symptoms provided");
 
-    const AI_GATEWAY_KEY = Deno.env.get("AI_GATEWAY_KEY");
-    const AI_GATEWAY_URL = Deno.env.get("AI_GATEWAY_URL");
-    if (!AI_GATEWAY_KEY) throw new Error("AI_GATEWAY_KEY not configured");
-    if (!AI_GATEWAY_URL) throw new Error("AI_GATEWAY_URL not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
