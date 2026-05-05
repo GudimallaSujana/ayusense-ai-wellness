@@ -13,10 +13,9 @@ serve(async (req) => {
     const { imageBase64 } = await req.json();
     if (!imageBase64) throw new Error("No image provided");
 
-    const AI_GATEWAY_KEY = Deno.env.get("AI_GATEWAY_KEY");
-    const AI_GATEWAY_URL = Deno.env.get("AI_GATEWAY_URL");
-    if (!AI_GATEWAY_KEY) throw new Error("AI_GATEWAY_KEY not configured");
-    if (!AI_GATEWAY_URL) throw new Error("AI_GATEWAY_URL not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -81,7 +80,7 @@ If you cannot identify the plant, set confidence below 30 and explain what you s
     const response = await fetch(AI_GATEWAY_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${AI_GATEWAY_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
